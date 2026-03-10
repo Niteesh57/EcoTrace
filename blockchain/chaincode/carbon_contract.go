@@ -11,22 +11,33 @@ type SmartContract struct {
 	contractapi.Contract
 }
 
-type CarbonData struct {
-	ShipmentID string  `json:"shipmentID"`
-	Emission   float64 `json:"emission"`
+type Shipment struct {
+	ID      string `json:"id"`
+	CarbonData string `json:"carbonData"`
 }
 
-func (s *SmartContract) LogCarbonData(ctx contractapi.TransactionContextInterface, qrData string) error {
-	var data CarbonData
-	err := json.Unmarshal([]byte(qrData), &data)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal JSON: %v", err)
+func (s *SmartContract) LogCarbonData(ctx contractapi.TransactionContextInterface, shipmentID string, carbonData string) error {
+	shipment := Shipment{
+		ID: shipmentID,
+		CarbonData: carbonData,
 	}
 
-	carbonJSON, err := json.Marshal(data)
+	shipmentJSON, err := json.Marshal(shipment)
 	if err != nil {
 		return err
 	}
 
-	return ctx.GetStub().PutState(data.ShipmentID, carbonJSON)
+	return ctx.GetStub().PutState(shipmentID, shipmentJSON)
+}
+
+func main() {
+	chaincode, err := contractapi.NewChaincode(&SmartContract{})
+	if err != nil {
+		fmt.Printf("Error creating chaincode: %s", err.Error())
+		return
+	}
+
+	if err := chaincode.Start(); err != nil {
+		fmt.Printf("Error starting chaincode: %s", err.Error())
+	}
 }
