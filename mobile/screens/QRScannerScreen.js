@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, Button, Alert } from 'react-native';
 import { BarCodeScanner } from 'expo-barcode-scanner';
-import axios from 'axios';
+import { submitTransaction } from '../services/blockchainService';
 
-export default function QRScannerScreen() {
+export default function QRScannerScreen({ navigation }) {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
 
@@ -17,18 +17,19 @@ export default function QRScannerScreen() {
   const handleBarCodeScanned = async ({ type, data }) => {
     setScanned(true);
     try {
-      await axios.post('https://your-backend.com/submit-transaction', { qrData: data });
+      await submitTransaction(data);
       Alert.alert('Success', 'Carbon data logged successfully!');
+      navigation.navigate('RouteOptimization');
     } catch (error) {
       Alert.alert('Error', 'Failed to log carbon data.');
     }
   };
 
   if (hasPermission === null) {
-    return <View><Text>Requesting for camera permission</Text></View>;
+    return <Text>Requesting for camera permission</Text>;
   }
   if (hasPermission === false) {
-    return <View><Text>No access to camera</Text></View>;
+    return <Text>No access to camera</Text>;
   }
 
   return (
